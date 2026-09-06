@@ -1,0 +1,16 @@
+{
+  "id": "dosomethingbetter/neural-bates-dml-10d-gpu",
+  "title": "Neural Bates DML (10D CPU Fast)",
+  "code_file": "Kaggle_Training_Pipeline.ipynb",
+  "language": "python",
+  "kernel_type": "notebook",
+  "is_private": "true",
+  "enable_gpu": "false",
+  "enable_tpu": "false",
+  "enable_internet": "true",
+  "machine_shape": "",
+  "dataset_sources": [],
+  "competition_sources": [],
+  "kernel_sources": [],
+  "model_sources": []
+}
