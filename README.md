@@ -86,7 +86,7 @@ Generate offline samples. This uses Central Finite Differences on the FFT pricer
 ```bash
 python generate_dataset.py
 ```
-*(Note: the shipped checkpoint was trained on 1,000 samples; scale to 100,000 via `num_samples` for production-grade accuracy.)*
+*(The full 100k-sample dataset used for the shipped model — 10D inputs, 55-price surfaces, Jacobians — is ~246 MB and hosted on [Kaggle Datasets](https://www.kaggle.com/datasets/amanatar/bates-dml-100k), since it exceeds GitHub's file-size limit.)*
 
 ### 2. Train the Sobolev Neural Network
 Train the PyTorch MLP using Sobolev Loss.
