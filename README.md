@@ -1,5 +1,14 @@
 # Differential Machine Learning for Bates Model Calibration
 
+<div align="center">
+
+[![CI Verified](https://github.com/Amanatar/neural-bates-dml/actions/workflows/ci-verify.yml/badge.svg)](https://github.com/Amanatar/neural-bates-dml/actions)
+[![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
+[![PyTorch](https://img.shields.io/badge/PyTorch-2.0+-EE4C2C?logo=pytorch&logoColor=white)](https://pytorch.org)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+
+</div>
+
 This repository contains an end-to-end implementation of **Differential Machine Learning (DML)** applied to the **Bates Stochastic Volatility Jump-Diffusion Model**. It combines a from-scratch Carr-Madan Fast Fourier Transform (FFT) pricer with a PyTorch-based neural surrogate trained via a Sobolev-style loss function.
 
 This project validates the method introduced by Antoine Savine and Brian Huge (2020)—originally developed in derivatives research at Danske Bank to resolve computational bottlenecks in risk reporting. By training the neural network on both option prices and their corresponding parameter sensitivities (Greeks), the surrogate learns the underlying analytical pricing surface, enabling rapid downstream calibration.
