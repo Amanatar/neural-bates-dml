@@ -37,6 +37,10 @@ def train_dml_surrogate(dataset_path='dataset_100000_dml.pt', epochs=100, batch_
     
     dY_dX_scaled = dY_dX * (X_std_reshaped / Y_std_reshaped)
     
+    # Note on shuffle=True:
+    # Each sample is an independent synthetic cross-sectional parameter tuple
+    # (v0, theta, kappa, sigma_v, rho, lambda_j, mu_j, sigma_j, r, q) -> (prices, Greeks) from Carr-Madan FFT.
+    # Shuffling breaks correlation across synthetic generation batches; no sequential market lookahead leakage exists.
     dataset = TensorDataset(X_scaled, Y_scaled, dY_dX_scaled)
     dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True,
                             pin_memory=False)
@@ -89,7 +93,12 @@ def train_dml_surrogate(dataset_path='dataset_100000_dml.pt', epochs=100, batch_
             
             loss = loss_price + alpha * loss_greeks
             
+            if torch.isnan(loss) or torch.isinf(loss):
+                print(f"Warning: NaN or Inf loss encountered at epoch {epoch+1}, skipping step.")
+                continue
+            
             loss.backward()
+            torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
             optimizer.step()
             
             epoch_loss += loss.item() * batch_X.size(0)
