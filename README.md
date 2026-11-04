@@ -13,16 +13,14 @@ license: mit
 
 <div align="center">
 
-[![CI Verification](https://github.com/Amanatar/neural-bates-dml/actions/workflows/ci-verify.yml/badge.svg)](https://github.com/Amanatar/neural-bates-dml/actions)
-[![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
-[![PyTorch 2.1+](https://img.shields.io/badge/PyTorch-2.1+-EE4C2C?logo=pytorch&logoColor=white)](https://pytorch.org)
-[![Hugging Face Spaces](https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-Spaces-yellow)](https://huggingface.co/spaces)
-[![Streamlit](https://img.shields.io/badge/Streamlit-1.30+-FF4B4B?logo=streamlit&logoColor=white)](https://streamlit.io)
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Live Interactive Workbench on Hugging Face Spaces](https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-Live%20Workbench-yellow?style=for-the-badge)](https://huggingface.co/spaces/Amanatar/neural-bates-dml)
+[![CI Verified on Ubuntu 24.04](https://img.shields.io/badge/CI%20Verified-Ubuntu%2024.04%20%E2%9C%93-10b981?style=for-the-badge&logo=githubactions&logoColor=white)](https://github.com/Amanatar/neural-bates-dml/actions)
+[![Python 3.11](https://img.shields.io/badge/Python-3.11-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/downloads/)
+[![PyTorch](https://img.shields.io/badge/PyTorch-2.1+-EE4C2C?style=for-the-badge&logo=pytorch&logoColor=white)](https://pytorch.org)
 
-**An institutional-grade Quantitative Derivatives Engine implementing Sobolev Differential Machine Learning (Huge & Savine, 2020) for the 10-dimensional Bates Stochastic Volatility Jump-Diffusion (SVJD) model.**
+**An institutional quantitative derivatives engine implementing Sobolev Differential Machine Learning (Huge & Savine, 2020) for the 10-dimensional Bates Stochastic Volatility Jump-Diffusion (SVJD) model.**
 
-[Detailed Empirical Results](RESULTS.md) • [Interactive Workbench](app.py) • [Hugging Face Deployer](deploy_hf_space.py)
+[Detailed Empirical Results](RESULTS.md) • [Interactive Workbench](app.py) • [Hugging Face Space Deployer](deploy_hf_space.py)
 
 </div>
 
@@ -30,21 +28,49 @@ license: mit
 
 ## 📌 Executive Summary
 
-Calibrating stochastic volatility jump-diffusion models to market option surfaces via traditional numerical quadrature (e.g., Carr-Madan FFT) requires evaluating complex characteristic functions hundreds of times per optimization trajectory—creating severe latency bottlenecks in intraday algorithmic risk reporting, automated volatility market making, and high-frequency parameter recalibration.
+Calibrating stochastic volatility jump-diffusion models to equity volatility surfaces via classical numerical quadrature (e.g. Carr-Madan FFT) requires evaluating complex characteristic functions hundreds of times per optimization path—creating severe latency bottlenecks in intraday algorithmic risk reporting, automated volatility market making, and multi-asset parameter recalibration.
 
 This repository implements an end-to-end **Sobolev Differential Neural Surrogate** that:
-1. **Accelerates Calibration by $1.58\times$ over Carr-Madan FFT and $4.62\times$ over Vanilla MLPs**, converging in **$6.07\text{ s}$** on a real 151-contract S&P 500 (`SPY`) surface.
-2. **Reduces Out-of-Sample Greek Errors by $40.1\%$ (Delta) and $44.8\%$ (Vega)** via twin-network Jacobian backpropagation ($\lambda_{\text{sobolev}} = 1.0$).
+1. **Accelerates Inverse Surface Calibration by $1.58\times$ over Carr-Madan FFT and $4.62\times$ over Vanilla MLPs**, converging in **$6.07\text{ s}$** on a real 151-contract S&P 500 (`SPY`) surface.
+2. **Reduces Out-of-Sample Greek Sensitivity Errors by $40.1\%$ (Delta) and $44.8\%$ (Vega)** via twin-network Jacobian backpropagation ($\lambda_{\text{sobolev}} = 1.0$).
 3. **Guarantees Absence of Arbitrage:** Enforces smooth, convex surfaces with a **$97.9\%$ butterfly convexity pass rate**, eliminating the spurious local minima and high-frequency pricing ripples that plague standard supervised MLPs.
 4. **Interactive Quantitative Workbench:** Features a dark-themed Streamlit analytics application ([`app.py`](app.py)) containerized for Hugging Face Docker Spaces with real-time autograd Greek computation in `< 5 ms` on CPU.
 
 ---
 
-## 🏛️ System Architecture
+## 📐 Mathematical Formulation
+
+### 1. Bates (1996) Stochastic Volatility Jump-Diffusion SDE
+Under the risk-neutral pricing measure $\mathbb{Q}$, the asset spot price $S_t$ and variance process $v_t$ evolve according to the coupled system:
+$$dS_t = (r - q - \lambda_j \bar{k}) S_t dt + \sqrt{v_t} S_t dW_t^S + J_t S_t dN_t$$
+$$dv_t = \kappa (\theta - v_t) dt + \sigma_v \sqrt{v_t} dW_t^v$$
+with Brownian correlation:
+$$d\langle W^S, W^v \rangle_t = \rho dt$$
+where $N_t \sim \text{Poisson}(\lambda_j)$ is an independent Poisson jump counter with arrival intensity $\lambda_j$, and log-jump amplitude $\ln(1 + J) \sim \mathcal{N}\left(\mu_j, \sigma_j^2\right)$. The martingale compensation drift is $\bar{k} = \mathbb{E}[J] = \exp\left(\mu_j + \frac{1}{2}\sigma_j^2\right) - 1$.
+
+The active 10-dimensional input feature vector is:
+$$\mathbf{x} = \left[ k = \ln(K/S_0), \, T, \, r, \, v_0, \, \kappa, \, \theta, \, \sigma_v, \, \rho, \, \lambda_j, \, \mu_j \right]^\top \in \mathbb{R}^{10}$$
+
+### 2. Carr-Madan Fast Fourier Transform (FFT) Pricing Integral
+European call options $C(k, T)$ are computed via damped Fourier inversion of the risk-neutral characteristic function:
+$$C(k, T) = \frac{e^{-\alpha k}}{\pi} \int_0^\infty e^{-i v k} \psi(v) dv, \quad \psi(v) = \frac{e^{-r T} \phi_T\left(v - (\alpha + 1) i\right)}{\alpha^2 + \alpha - v^2 + i (2\alpha + 1) v}$$
+with damping parameter $\alpha = 1.5$. To prevent numerical branch-cut discontinuities across Riemann sheets on long maturities, we implement the continuous complex logarithm formulation of **Albrecher, Mayer, Schoutens, & Tistaert (2007)**:
+$$\phi_T(u) = \exp\left( C(u, T) + D(u, T) v_0 + \psi_{\text{jump}}(u) T \right)$$
+$$C(u, T) = (r - q) i u T + \frac{\kappa \theta}{\sigma_v^2} \left[ (\beta - d) T - 2 \ln\left( \frac{1 - g e^{-d T}}{1 - g} \right) \right]$$
+$$D(u, T) = \frac{\beta - d}{\sigma_v^2} \left( \frac{1 - e^{-d T}}{1 - g e^{-d T}} \right), \quad g = \frac{\beta - d}{\beta + d}, \quad d = \sqrt{\beta^2 + \sigma_v^2 (u^2 + i u)}$$
+
+### 3. Twin-Network Sobolev Differential ML Objective
+Standard supervised neural networks minimize pricing MSE, producing functions that oscillate and violate convexity ($\partial^2 V / \partial S^2 < 0$). In Differential Machine Learning (Huge & Savine, 2020), the network $\hat{f}_{\mathbf{w}}(\mathbf{x}) \approx V / S_0$ is supervised on both prices and exact analytical parameter Jacobians:
+$$\mathcal{L}_{\text{total}}(\mathbf{w}) = \frac{1}{B} \sum_{i=1}^B \left( \hat{f}_{\mathbf{w}}(\mathbf{x}_i) - y_i \right)^2 + \lambda_{\text{sobolev}} \frac{1}{B} \sum_{i=1}^B \left\| \nabla_{\mathbf{x}} \hat{f}_{\mathbf{w}}(\mathbf{x}_i) - \mathbf{J}_i \right\|^2$$
+where $\mathbf{J}_i = \left[ \frac{\partial V}{\partial k}, \frac{\partial V}{\partial T}, \dots, \frac{\partial V}{\partial \mu_j} \right] \in \mathbb{R}^{10}$ are the exact finite-difference Jacobians. Network sensitivities $\nabla_{\mathbf{x}} \hat{f}_{\mathbf{w}}$ are computed via PyTorch graph backpropagation with smooth twice-differentiable $\text{SiLU}$ activations.
+
+---
+
+## 🏛️ System Architecture Flow
 
 ```mermaid
 graph TD
-    subgraph Data Generation & FFT Engine
+    subgraph Data Generation & Ground Truth
         A[10-D Sobol Quasi-Monte Carlo<br/>Calm, Stress & Crash Regimes] --> B[Continuous Branch-Cut Carr-Madan FFT<br/>Albrecher et al. 2007]
         B --> C[Option Prices V / S0]
         B --> D[Central Finite Differences]
@@ -54,7 +80,7 @@ graph TD
     subgraph Differential Machine Learning
         C --> F[4-Layer Smooth MLP<br/>SiLU Activations]
         E --> F
-        F --> G[Twin Autograd Jacobians<br/>torch.func.vmap / grad]
+        F --> G[Twin Autograd Jacobians<br/>torch.func / grad]
         G --> H["Sobolev Loss: MSE(y) + λ * MSE(Jacobian)"]
         H -->|Backpropagation| F
     end
@@ -116,7 +142,7 @@ Evaluated on the held-out 3,000-contract test set from [`results/ablation_study.
 
 ## 💻 Interactive Quantitative Options Workbench (`app.py`)
 
-The repository includes a complete dark-themed Streamlit application ([`app.py`](app.py)) with three specialized panels:
+The repository includes a dark-themed Streamlit application ([`app.py`](app.py)) with three specialized panels:
 1. **🏁 Real SPY Volatility Smile Calibration Race:** Live one-click calibration against 151 real SPY options with interactive multi-maturity Plotly smile curves overlaying market quotes against model fits and Black-Scholes baselines.
 2. **🔬 10-D Bates & Greeks Explorer:** Real-time sliders for $v_0, \kappa, \theta, \sigma_v, \rho, \lambda_j, \mu_j, T, r$. Computes implied volatility smiles and exact neural Greeks ($\Delta, \Gamma, \nu$) in `< 5 ms` via PyTorch autograd graph differentiation, plotted against analytical Carr-Madan FFT benchmarks.
 3. **📊 Sobolev vs. Vanilla Ablation & Arbitrage Audit:** Deep dive into the sample-efficiency matrix, Greek error reductions, and butterfly convexity diagnostics.
@@ -130,7 +156,7 @@ streamlit run app.py
 
 ## 🐳 Hugging Face Docker Space Deployment
 
-The application is containerized with a production-grade [`Dockerfile`](Dockerfile) (`python:3.11-slim`, non-root user `uid=1000`, port `7860`, CPU-only PyTorch `--index-url https://download.pytorch.org/whl/cpu` for zero GPU quota and fast builds).
+The application is containerized with a production [`Dockerfile`](Dockerfile) (`python:3.11-slim`, non-root user `uid=1000`, port `7860`, CPU-only PyTorch `--index-url https://download.pytorch.org/whl/cpu` for zero GPU quota and fast builds).
 
 To deploy directly to your Hugging Face account:
 
