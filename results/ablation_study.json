@@ -1,0 +1,104 @@
+{
+  "1000": {
+    "price_only_mlp": {
+      "model_name": "price_only_mlp",
+      "label": "Baseline (Price-Only)",
+      "training_samples": 1000,
+      "lambda_sobolev": 0.0,
+      "epochs": 60,
+      "training_time_s": 7.235771179199219,
+      "price_mae": 0.012515926733613014,
+      "price_rmse": 0.020824212580919266,
+      "delta_mae": 0.07203835994005203,
+      "vega_mae": 0.1076517328619957,
+      "butterfly_violation_pct": 13.866666666666665,
+      "calendar_violation_pct": 0.0,
+      "latency_128_ms": 1.4782700000796467,
+      "latency_1024_ms": 4.370898000197485
+    },
+    "sobolev_dml_net": {
+      "model_name": "sobolev_dml_net",
+      "label": "Flagship (Sobolev DML)",
+      "training_samples": 1000,
+      "lambda_sobolev": 1.0,
+      "epochs": 60,
+      "training_time_s": 12.788068056106567,
+      "price_mae": 0.011019639670848846,
+      "price_rmse": 0.018261702731251717,
+      "delta_mae": 0.06380264461040497,
+      "vega_mae": 0.10458457469940186,
+      "butterfly_violation_pct": 25.966666666666665,
+      "calendar_violation_pct": 0.0,
+      "latency_128_ms": 2.5287999998545274,
+      "latency_1024_ms": 10.14703200024087
+    }
+  },
+  "5000": {
+    "price_only_mlp": {
+      "model_name": "price_only_mlp",
+      "label": "Baseline (Price-Only)",
+      "training_samples": 5000,
+      "lambda_sobolev": 0.0,
+      "epochs": 50,
+      "training_time_s": 24.6479971408844,
+      "price_mae": 0.009822255931794643,
+      "price_rmse": 0.015485110692679882,
+      "delta_mae": 0.057276491075754166,
+      "vega_mae": 0.10266584157943726,
+      "butterfly_violation_pct": 28.066666666666666,
+      "calendar_violation_pct": 0.0,
+      "latency_128_ms": 1.5537259995471686,
+      "latency_1024_ms": 5.249676000094041
+    },
+    "sobolev_dml_net": {
+      "model_name": "sobolev_dml_net",
+      "label": "Flagship (Sobolev DML)",
+      "training_samples": 5000,
+      "lambda_sobolev": 1.0,
+      "epochs": 50,
+      "training_time_s": 35.63870906829834,
+      "price_mae": 0.009669146500527859,
+      "price_rmse": 0.015639934688806534,
+      "delta_mae": 0.0449366495013237,
+      "vega_mae": 0.10199722647666931,
+      "butterfly_violation_pct": 27.96666666666667,
+      "calendar_violation_pct": 0.0,
+      "latency_128_ms": 2.450506000313908,
+      "latency_1024_ms": 8.15935000020545
+    }
+  },
+  "24000": {
+    "price_only_mlp": {
+      "model_name": "price_only_mlp",
+      "label": "Baseline (Price-Only)",
+      "training_samples": 24000,
+      "lambda_sobolev": 0.0,
+      "epochs": 40,
+      "training_time_s": 106.45272660255432,
+      "price_mae": 0.0019368462963029742,
+      "price_rmse": 0.0029365881346166134,
+      "delta_mae": 0.008478764444589615,
+      "vega_mae": 0.02275027707219124,
+      "butterfly_violation_pct": 5.766666666666667,
+      "calendar_violation_pct": 0.0,
+      "latency_128_ms": 2.134688000078313,
+      "latency_1024_ms": 5.679009999730624
+    },
+    "sobolev_dml_net": {
+      "model_name": "sobolev_dml_net",
+      "label": "Flagship (Sobolev DML)",
+      "training_samples": 24000,
+      "lambda_sobolev": 1.0,
+      "epochs": 40,
+      "training_time_s": 176.92450284957886,
+      "price_mae": 0.0018063436727970839,
+      "price_rmse": 0.0028699475806206465,
+      "delta_mae": 0.005083498544991016,
+      "vega_mae": 0.012556939385831356,
+      "butterfly_violation_pct": 3.8666666666666667,
+      "calendar_violation_pct": 0.0,
+      "latency_128_ms": 1.8943739996757358,
+      "latency_1024_ms": 5.909925999585539
+    }
+  }
+}

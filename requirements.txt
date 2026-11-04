@@ -2,6 +2,9 @@ torch>=2.1.0
 numpy
 scipy
 pandas
+streamlit>=1.30.0
+plotly>=5.18.0
 matplotlib
 yfinance
 scikit-learn
+huggingface_hub

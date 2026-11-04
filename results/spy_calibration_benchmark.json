@@ -1,0 +1,87 @@
+{
+  "timestamp": "2026-11-04T12:39:45Z",
+  "spy_spot_price": 754.3499755859375,
+  "total_contracts": 151,
+  "maturities_count": 4,
+  "micro_benchmark": {
+    "fft_surface_eval_ms": 33.483997980753585,
+    "neural_surface_eval_ms": 3.258054256439209,
+    "per_evaluation_speedup_factor": 10.277299070319627
+  },
+  "methods": {
+    "classical_carr_madan_fft": {
+      "method": "Classical Carr-Madan FFT (SciPy L-BFGS-B)",
+      "calibration_time_s": 9.607025861740112,
+      "calibration_time_ms": 9607.025861740112,
+      "iterations": 14,
+      "function_evaluations": 136,
+      "parameters": {
+        "v0": 0.026130860204471574,
+        "kappa": 1.9977975801019088,
+        "theta": 0.01,
+        "sigma_v": 0.4429851251020274,
+        "rho": -0.634596947069944,
+        "lambda_j": 0.25752551403508317,
+        "mu_j": -0.2360313554431597,
+        "sigma_j": 0.15
+      },
+      "price_mae_dollars": 0.5689233571305384,
+      "price_rmse_dollars": 0.7811201248774693,
+      "iv_rmse_bps": 85.38623924669568,
+      "iv_mae_bps": 63.004274116576056,
+      "arbitrage_pass_rate_pct": 95.8041958041958,
+      "inverted_contracts_count": 151,
+      "total_contracts_count": 151
+    },
+    "vanilla_price_only_mlp": {
+      "method": "Vanilla Price-Only MLP (lambda=0.0)",
+      "calibration_time_s": 28.03700542449951,
+      "calibration_time_ms": 28037.00542449951,
+      "iterations": 450,
+      "function_evaluations": 450,
+      "parameters": {
+        "v0": 0.044847749173641205,
+        "kappa": 2.6138758659362793,
+        "theta": 0.02344069629907608,
+        "sigma_v": 0.6235765814781189,
+        "rho": -0.5212673544883728,
+        "lambda_j": 0.2097519040107727,
+        "mu_j": -0.045013993978500366,
+        "sigma_j": 0.15
+      },
+      "price_mae_dollars": 3.349173406205905,
+      "price_rmse_dollars": 3.950683714861015,
+      "iv_rmse_bps": 410.52535379388826,
+      "iv_mae_bps": 358.3167754128502,
+      "arbitrage_pass_rate_pct": 97.9020979020979,
+      "inverted_contracts_count": 140,
+      "total_contracts_count": 151,
+      "speedup_vs_fft": 0.34265520572839875
+    },
+    "sobolev_dml_surrogate": {
+      "method": "Sobolev DML Surrogate (lambda=1.0)",
+      "calibration_time_s": 6.07299280166626,
+      "calibration_time_ms": 6072.99280166626,
+      "iterations": 450,
+      "function_evaluations": 450,
+      "parameters": {
+        "v0": 0.04062575846910477,
+        "kappa": 1.5994048118591309,
+        "theta": 0.024088924750685692,
+        "sigma_v": 0.682905375957489,
+        "rho": -0.6803668737411499,
+        "lambda_j": 0.2162010371685028,
+        "mu_j": -0.035778552293777466,
+        "sigma_j": 0.15
+      },
+      "price_mae_dollars": 2.778839654812874,
+      "price_rmse_dollars": 3.3573200110457897,
+      "iv_rmse_bps": 339.9776613124295,
+      "iv_mae_bps": 291.92556855841116,
+      "arbitrage_pass_rate_pct": 97.9020979020979,
+      "inverted_contracts_count": 145,
+      "total_contracts_count": 151,
+      "speedup_vs_fft": 1.5819261071912043
+    }
+  }
+}

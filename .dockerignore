@@ -1,0 +1,13 @@
+__pycache__/
+*.pyc
+*.pyo
+.git
+.gitignore
+.pytest_cache/
+.ipynb_checkpoints/
+data/bates_sobol_dataset.npz
+bates_surrogate_dml.pth
+bates_surrogate_dml_local_backup.pth
+*.png
+Kaggle_Training_Pipeline.ipynb
+kernel-metadata.json

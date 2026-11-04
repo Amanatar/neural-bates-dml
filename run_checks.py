@@ -47,13 +47,9 @@ BOUNDS = [(0.01, 0.2), (0.5, 5.0), (0.01, 0.2), (0.1, 0.8),
 
 
 def check_1_fft_vs_bs():
-    # Bates -> pure BS limit: no jumps, vanishing vol-of-vol, rho irrelevant
-    sig = 0.20
-    calls = price_bates_surface(1.0, 0.05, 0.0, [0.25], np.array([1.0]),
-                                [sig ** 2, 2.0, sig ** 2, 1e-3, 0.0, 0.0, 0.0, 0.1])
-    ref = bs_call(1.0, 1.0, 0.05, 0.25, sig)
-    err = abs(float(calls[0, 0]) - ref)
-    check("1. FFT pricer matches Black-Scholes (ATM, 3M)", err < 0.05, f"abs err {err:.4f}")
+    from bates_fft import verify_fft_against_black_scholes
+    max_err, _ = verify_fft_against_black_scholes(tol=1e-3, verbose=False)
+    check("1. FFT pricer matches Black-Scholes across [0.80, 1.20] (< 1e-3)", max_err < 1e-3, f"max err {max_err:.6e}")
 
 
 def check_2_no_arbitrage():
@@ -94,7 +90,7 @@ def check_4_checkpoint():
     try:
         ckpt = torch.load('bates_surrogate_dml.pth', weights_only=False, map_location='cpu')
         D = ckpt['X_mean'].shape[0]
-        model = BatesNeuralSurrogate(D, 55)
+        model = BatesNeuralSurrogate(D, 55, activation='elu')
         model.load_state_dict(ckpt['model_state_dict'])
         model.eval()
         out = model(torch.randn(4, D))

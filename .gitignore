@@ -3,6 +3,7 @@ __pycache__/
 .ipynb_checkpoints/
 *.log
 .zcode/
-# 246 MB - too large for GitHub; hosted on Kaggle Datasets:
-# https://www.kaggle.com/datasets/amanatar/bates-dml-100k
+# Large datasets (>15 MB or raw training files)
 dataset_100000_dml.pt
+data/*.npz
+!data/eval/
