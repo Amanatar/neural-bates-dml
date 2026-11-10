@@ -6,6 +6,7 @@ Repository: Amanatar/neural-bates-dml
 
 import os
 import sys
+import json
 import time
 import pytest
 import numpy as np
@@ -267,3 +268,86 @@ def test_spy_surface_calibration():
     
     assert mae_dollars < 10.0, f"Dollar Price MAE ${mae_dollars:.2f} exceeded threshold"
     assert iv_rmse_bps < 450.0, f"Implied Vol RMSE {iv_rmse_bps:.1f} bps exceeded 450 bps threshold"
+
+
+def test_sobolev_ablation_metrics_verified():
+    """
+    Production Test 4: Verifies sample-efficiency study results in results/ablation_metrics.json
+    and compact flagship checkpoint artifacts/bates_sobolev_dml.pt (< 2 MB).
+    Asserts Sobolev Delta RMSE < Price-Only Delta RMSE across N in {512, 2048, 8192}.
+    """
+    ablation_path = REPO_ROOT / "results" / "ablation_metrics.json"
+    sobolev_ckpt_path = REPO_ROOT / "artifacts" / "bates_sobolev_dml.pt"
+
+    assert ablation_path.exists(), f"Ablation metrics missing at {ablation_path}"
+    assert sobolev_ckpt_path.exists(), f"Sobolev DML checkpoint missing at {sobolev_ckpt_path}"
+
+    ckpt_size_mb = os.path.getsize(sobolev_ckpt_path) / (1024 * 1024)
+    assert ckpt_size_mb < 2.0, f"Checkpoint {ckpt_size_mb:.2f} MB exceeds 2 MB threshold"
+
+    with open(ablation_path, "r", encoding="utf-8") as f:
+        metrics = json.load(f)
+
+    for n_str in ["512", "2048", "8192"]:
+        assert n_str in metrics, f"Missing sample size N={n_str} in ablation_metrics.json"
+        base = metrics[n_str]["price_only"]
+        dml = metrics[n_str]["sobolev_dml"]
+        assert dml["zero_nans"] is True, f"NaN reported for N={n_str}"
+        assert base["zero_nans"] is True, f"NaN reported for Price-Only N={n_str}"
+        assert dml["delta_rmse"] < base["delta_rmse"], (
+            f"Expected Sobolev Delta RMSE ({dml['delta_rmse']:.6f}) < Price-Only ({base['delta_rmse']:.6f}) at N={n_str}"
+        )
+        assert dml["vega_rmse"] < base["vega_rmse"], (
+            f"Expected Sobolev Vega RMSE ({dml['vega_rmse']:.6f}) < Price-Only ({base['vega_rmse']:.6f}) at N={n_str}"
+        )
+
+
+def test_fast_5regime_sobolev_calibration_ci():
+    """
+    Production Test 5: Verifies fast sub-2s analytical L-BFGS surface calibration using
+    artifacts/bates_sobolev_dml.pt on a 55-contract Steep Equity Skew surface, plus
+    validates results/calibration_benchmark.json across all 5 regimes.
+    """
+    from src.calibrate_surface import (
+        REGIMES,
+        construct_synthetic_surface,
+        calibrate_sobolev_dml,
+        evaluate_calibration_quality
+    )
+
+    calib_json_path = REPO_ROOT / "results" / "calibration_benchmark.json"
+    sobolev_ckpt_path = REPO_ROOT / "artifacts" / "bates_sobolev_dml.pt"
+    assert calib_json_path.exists(), f"Calibration benchmark missing at {calib_json_path}"
+
+    with open(calib_json_path, "r", encoding="utf-8") as f:
+        calib_bench = json.load(f)
+    assert len(calib_bench) == 5, f"Expected 5 regimes in calibration_benchmark.json, got {len(calib_bench)}"
+    for r_key, r_val in calib_bench.items():
+        assert r_val["speedup_x"] > 1.0, f"Expected speedup > 1x for {r_key}"
+        assert np.isfinite(r_val["sobolev_dml"]["iv_rmse_bps"]), f"Non-finite IV RMSE for {r_key}"
+
+    device = torch.device("cpu")
+    ckpt = torch.load(sobolev_ckpt_path, map_location=device, weights_only=False)
+    model = BatesNeuralSurrogate(input_dim=10, output_dim=1, activation="silu").to(device)
+    model.load_state_dict(ckpt["model_state_dict"])
+    model.eval()
+    bundle = {
+        "model": model,
+        "X_mean": ckpt["X_mean"],
+        "X_std": ckpt["X_std"],
+        "y_mean": ckpt["y_mean"],
+        "y_std": ckpt["y_std"]
+    }
+
+    r_info = REGIMES["steep_equity_skew"]
+    contracts = construct_synthetic_surface(r_info["params"], r_info["maturities"], noise_seed=101)
+    assert len(contracts) == 55
+
+    neutral_guess = [0.04, 2.0, 0.04, 0.40, -0.55, 0.25, -0.10]
+    calib_p, wall_s, _ = calibrate_sobolev_dml(contracts, bundle, neutral_guess, r_info["params"][7], max_iter=50, device=device)
+    assert wall_s < 3.0, f"Fast Sobolev L-BFGS calibration took {wall_s:.2f}s (> 3.0s limit)"
+    assert np.all(np.isfinite(calib_p)), "Non-finite calibrated parameters"
+
+    iv_rmse_bps, _ = evaluate_calibration_quality(contracts, calib_p, r_info["params"][7])
+    assert iv_rmse_bps < 100.0, f"Steep Skew IV RMSE {iv_rmse_bps:.1f} bps exceeded 100 bps CI threshold"
+

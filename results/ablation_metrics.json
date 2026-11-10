@@ -1,0 +1,80 @@
+{
+  "512": {
+    "price_only": {
+      "price_rmse": 0.005073897074908018,
+      "price_mae": 0.003668451216071844,
+      "delta_rmse": 0.05498971790075302,
+      "delta_mae": 0.03649868816137314,
+      "vega_rmse": 0.06675422936677933,
+      "vega_mae": 0.048406485468149185,
+      "batch_latency_128_ms": 2.5741220000054454,
+      "batch_latency_1024_ms": 11.047591999995348,
+      "zero_nans": true,
+      "training_time_s": 5.17001748085022
+    },
+    "sobolev_dml": {
+      "price_rmse": 0.004633793141692877,
+      "price_mae": 0.00335392402485013,
+      "delta_rmse": 0.045720670372247696,
+      "delta_mae": 0.0308537520468235,
+      "vega_rmse": 0.06450341641902924,
+      "vega_mae": 0.04632280021905899,
+      "batch_latency_128_ms": 2.2731760000169743,
+      "batch_latency_1024_ms": 12.38288200001989,
+      "zero_nans": true,
+      "training_time_s": 8.994126558303833
+    }
+  },
+  "2048": {
+    "price_only": {
+      "price_rmse": 0.002789849415421486,
+      "price_mae": 0.0020360355265438557,
+      "delta_rmse": 0.02969694882631302,
+      "delta_mae": 0.02098732814192772,
+      "vega_rmse": 0.04866201430559158,
+      "vega_mae": 0.033659644424915314,
+      "batch_latency_128_ms": 3.054866000020411,
+      "batch_latency_1024_ms": 12.241095999997924,
+      "zero_nans": true,
+      "training_time_s": 18.173437356948853
+    },
+    "sobolev_dml": {
+      "price_rmse": 0.002239034976810217,
+      "price_mae": 0.0016090732533484697,
+      "delta_rmse": 0.02487139403820038,
+      "delta_mae": 0.016605086624622345,
+      "vega_rmse": 0.041124094277620316,
+      "vega_mae": 0.027730761095881462,
+      "batch_latency_128_ms": 2.9653739999776008,
+      "batch_latency_1024_ms": 24.551706000020204,
+      "zero_nans": true,
+      "training_time_s": 31.716647148132324
+    }
+  },
+  "8192": {
+    "price_only": {
+      "price_rmse": 0.0010655904188752174,
+      "price_mae": 0.0007431218400597572,
+      "delta_rmse": 0.014993686228990555,
+      "delta_mae": 0.009307198226451874,
+      "vega_rmse": 0.02600017748773098,
+      "vega_mae": 0.016922062262892723,
+      "batch_latency_128_ms": 1.4818299999751616,
+      "batch_latency_1024_ms": 4.619108000006236,
+      "zero_nans": true,
+      "training_time_s": 56.84079170227051
+    },
+    "sobolev_dml": {
+      "price_rmse": 0.0007440397166647017,
+      "price_mae": 0.0005321224452927709,
+      "delta_rmse": 0.009596866555511951,
+      "delta_mae": 0.00625764112919569,
+      "vega_rmse": 0.019821010529994965,
+      "vega_mae": 0.012518689036369324,
+      "batch_latency_128_ms": 1.5440099999977974,
+      "batch_latency_1024_ms": 5.169891999976244,
+      "zero_nans": true,
+      "training_time_s": 98.77294182777405
+    }
+  }
+}
